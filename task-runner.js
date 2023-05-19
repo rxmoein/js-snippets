@@ -1,45 +1,49 @@
+/**
+ * The goal here is to make a task runner
+ * The number of the concurrent tasks must be configurable
+ */
 class Runner {
     constructor(concurrency = 1) {
         this.concurrency = concurrency;
-        this.waitList = [];
-        this.count = 0;
+        this.runningTasksCount = 0;
+        this.queue = [];
     }
 
     push(task) {
-        this.waitList.push(task);
+        this.queue.push(task);
         this.run();
     }
 
     run() {
-        if (this.count < this.concurrency) {
-            this.count++;
-            if (this.waitList.length > 0) {
-                let task = this.waitList.shift();
+        if (this.runningTasksCount < this.concurrency) {
+            this.runningTasksCount++;
+            if (this.queue.length > 0) {
+                let task = this.queue.shift();
                 task().then(() => {
-                    this.count--;
+                    this.runningTasksCount--;
                     this.run();
-                })
+                });
             }
         }
     }
 }
 
-function task(x) {
+function makeTask(name) {
     return function () {
         return new Promise((resolve, _) => {
             setTimeout(() => {
-                console.log('task completed', x);
+                console.log('Task completed', name);
                 resolve();
             }, 2000);
-        })
+        });
     }
 }
 
 let r = new Runner(2);
-r.push(task(1));
-r.push(task(2));
-r.push(task(3));
-r.push(task(4));
-r.push(task(5));
-r.push(task(6));
-r.push(task(7));
+r.push(makeTask(1));
+r.push(makeTask(2));
+r.push(makeTask(3));
+r.push(makeTask(4));
+r.push(makeTask(5));
+r.push(makeTask(6));
+r.push(makeTask(7));
